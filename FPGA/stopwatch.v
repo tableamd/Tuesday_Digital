@@ -152,14 +152,13 @@ module stopwatch(
 	end
 
 	//スイッチのチェック用のループ
-	reg sw_value = 1'b0;
-	reg sw_value_old = 1'b0;
+	reg[1:0] sw_value = 2'b0;
+	reg[1:0] sw_value_old = 2'b0;
 	reg flug = 1'b0;
-	reg[1:0] sw_state = 2'b0;
 	always @(posedge clk0) begin
-		sw_state = sw[1:0]; //入力読み込み(ノンブロッキング代入が良いかも？)
+		sw_value = sw[1:0]; //入力読み込み(ノンブロッキング代入が良いかも？)
 
-		if(sw_value==1'b1 && sw_value_old==1'b0) begin
+		if(sw_value==2'b01 && sw_value_old==2'b0) begin
 			flug <= ~flug;
 		end
 
