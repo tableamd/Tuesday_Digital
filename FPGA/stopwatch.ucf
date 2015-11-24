@@ -1,7 +1,11 @@
+// seg7_counter10.ucf
 NET "clk0"		LOC = L15;	// CLK
 
-NET "sw(0)"    LOC = P3; 
+NET "sw(0)"    LOC = P3;
 NET "sw(1)"    LOC = F5;
+
+net "sw2(0)"   LOC = F6;
+net "sw2(1)"   LOC = P4; 
 
 NET "led(6)"	LOC = P16;	// LD6
 NET "led(5)"	LOC = D4;	// LD5

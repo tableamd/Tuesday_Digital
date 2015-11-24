@@ -3,9 +3,10 @@
 // Create Date:    20:11:40 10/21/2015 
 // Module Name:    seg7_drive 
 //////////////////////////////////////////////////////////////////////////////////
-module stopwatch(
+module seg7_drive(
 	input wire  clk0,
 	input wire[1:0] sw,
+	input wire[1:0] sw2,
 	output wire [7:0] seg7,
 	output wire [3:0] line,
 	output wire [6:0] led
@@ -13,12 +14,13 @@ module stopwatch(
 	assign line = 4'b0001<<ab;
 	assign led = { 1'b0, count6, count10 };
 	assign seg7 = { 1'b0, disp };
+	parameter[3:0] changer[0:9] = {4'd3, 4'd2, 4'd1, 4'd0, 4'd9, 4'd8, 4'd7, 4'd6, 4'd5, 4'd4};
 
 	// 表示
 	reg[6:0] disp=7'b0;
 	reg[3:0] x;
 	reg[1:0] ab=2'b0;
-
+	//reg[1:0] flug = sw[1:0]^2'b11;;
 	always @( posedge clk0 )begin	
 		if(c[17:0] == 0)begin
 			if(ab == 2'b00)begin
@@ -35,7 +37,15 @@ module stopwatch(
 			end
 			
 			ab <= ab+1'b1;
-	
+		//x <= ab?count6:count10;
+		
+			//case(ab)
+			//	2'b00 : x <= count_10min;
+			//	2'b01 : x <= count_1hour;
+			//	2'b10 : x <= count_10hour;
+			//	2'b11 : x <= count_top;
+			//endcase
+			
 			case(x)
 				4'b0000 : disp <= 7'b0111111; //0
 				4'b0001 : disp <= 7'b0000110; //1
@@ -52,19 +62,18 @@ module stopwatch(
 		end
 	end
 	 
+	// 1秒生成
+	//reg[26:0] c=27'b0;
+	//always @( posedge clk0 ) c <= (c==27'd99999999) ? 1'b0 : (c+1'b1);
+	//reg[24:0] c=25'b0;
+	//always @( posedge clk0 ) c <= (c==25'd999999) ? 1'b0 : (c+1'b1);
 	
 	// 1秒生成 NEW
  	reg[26:0] c=27'b0;
  	reg sec_enable=1'b0;
  	always @( posedge clk0 )begin
- 		if(flug == 2'b0) begin
- 			c <= ( c==27'd49999 )?1'b0:(c+1'b1);
- 			sec_enable <= ( c==27'd49999 )?1'b1:1'b0;
- 		end
- 		else begin
-  			c <= c+1'b0;
- 			//sec_enable <= ( c==27'd49999 )?1'b1:1'b0;
- 		end
+ 		c <= ( c==27'd49999 )?1'b0:(c+1'b1);
+ 		sec_enable <= ( c==27'd49999 )?1'b1:1'b0;
  	end 
 	
 	// 10進カウンタ 0~9秒
@@ -72,9 +81,20 @@ module stopwatch(
 	reg sec10_enable = 1'b0;
 	always @(posedge clk0) begin
 		if(sec_enable)begin
-			count10 <= (count10==4'd9) ? 1'b0 : (count10+1'b1);
+			if(flug == 2'b0)begin
+				count10 <= (count10==4'd9) ? 1'b0 : (count10+1'b1);
+			end
+			else begin
+				count10 <= (count10==4'd9) ? 1'b0 : (count10+1'b0);
+			end
 			sec10_enable <= (count10==4'd9)? 1'b1 : 1'b0;
 		end
+		
+		//if(sw_value==2'b10)begin
+		//	count10 <= 1'b0;
+		//	sec10_enable <= 1'b0;
+		//end
+		
 		else begin
 			sec10_enable <= 1'b0;
 		end
@@ -96,6 +116,11 @@ module stopwatch(
 		else begin
 			min_enable <= 1'b0;
 		end
+		
+		if(sw_value2==2'b01)begin
+			count_1min <= 1'b0;
+			min_enable <= 1'b0;
+		end
 	end
 	
 	// 10分カウンタ
@@ -109,6 +134,12 @@ module stopwatch(
 		else begin
 			ten_min_enable <= 1'b0;
 		end
+	
+		if(sw_value2==2'b01)begin
+			count_10min <= 1'b0;
+			ten_min_enable <= 1'b0;
+		end
+		
 	end
 	
 	// 10分毎の6進カウンタ -> 1時間を作成
@@ -122,6 +153,12 @@ module stopwatch(
 		else begin
 			hour_enable <= 1'b0;
 		end
+	
+		if(sw_value2==2'b01)begin
+			count_1hour <= 1'b0;
+			hour_enable <= 1'b0;
+		end
+		
 	end
 	
 	// 時間用10進カウンタ -> 0~9時間
@@ -129,6 +166,8 @@ module stopwatch(
 	reg ten_hour_enable = 1'b0;
 	always @(posedge clk0) begin
 		if(hour_enable)begin
+			//count_10hour <= (count_10hour==4'd9) ? 1'b0 : (count_10hour+1'b1);
+			//ten_hour_enable <= (count_10hour==4'd9) ? 1'b1 : 1'b0;
 			if(count_top != 4'd2)begin
 				count_10hour <= (count_10hour==4'd9) ? 1'b0 : (count_10hour+1'b1);
 				ten_hour_enable <= (count_10hour==4'd9) ? 1'b1 : 1'b0;
@@ -141,22 +180,38 @@ module stopwatch(
 		else begin
 			ten_hour_enable <= 1'b0;
 		end
+		
+		if(sw_value2==2'b01)begin
+			count_10hour <= 1'b0;
+			ten_hour_enable <= 1'b0;
+		end
+		
 	end
 	
 	//最終桁のカウンタ -> 0x, 1x, 2x時間
 	reg[1:0] count_top = 2'b0;
+	//reg min_enable = 1'b0;
 	always @(posedge clk0) begin
 		if(ten_hour_enable)begin
 			count_top <= (count_top==4'd2) ? 1'b0 : (count_top+1'b1);
+			//min_enable <= (count_1min==4'd5) ? 1'b1 : 1'b0;
 		end
+		
+		if(sw_value2==2'b01)begin
+			count_top <= 1'b0;
+		end
+		
 	end
-
+	
 	//スイッチのチェック用のループ
 	reg[1:0] sw_value = 2'b0;
+	reg[1:0] sw_value2 = 2'b0;
 	reg[1:0] sw_value_old = 2'b0;
 	reg flug = 1'b0;
 	always @(posedge clk0) begin
-		sw_value = sw[1:0]; //入力読み込み(ノンブロッキング代入が良いかも？)
+		sw_value <= sw[1:0]; //入力読み込み(ノンブロッキング代入が良いかも？)
+		sw_value2 <= sw2[1:0];
+		
 
 		if(sw_value==2'b01 && sw_value_old==2'b0) begin
 			flug <= ~flug;
@@ -164,5 +219,4 @@ module stopwatch(
 
 		sw_value_old <= sw_value;
 	end
-
 endmodule

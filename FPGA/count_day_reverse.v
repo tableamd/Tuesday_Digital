@@ -3,7 +3,7 @@
 // Create Date:    20:11:40 10/21/2015 
 // Module Name:    seg7_drive 
 //////////////////////////////////////////////////////////////////////////////////
-module count_day_reverse(
+module seg7_drive(
 	input wire  clk0,
 	output wire [7:0] seg7,
 	output wire [3:0] line,
@@ -17,26 +17,42 @@ module count_day_reverse(
 	reg[6:0] disp=7'b0;
 	reg[3:0] x;
 	reg[1:0] ab=2'b0;
-	parameter[3:0] changer[0:9] = {4'd3, 4'd2, 4'd1, 4'd0, 4'd9, 
-								   4'd8, 4'd7, 4'd6, 4'd5, 4'd4};
-	memory[0] = 
 	always @( posedge clk0 )begin	
 		if(c[17:0] == 0)begin
 			if(ab == 2'b00)begin
-				x <= changer[count_10hour];
+				//x <= count_10min;
+				//if(count_top != 4'd2)begin
+				//	x <= 4'd9 - count_10hour;
+				//end
+				//else begin
+				//	x <= 4'd3 - count_10hour;
+				//end
+				//x <= count_10hour;
+				x <= count_10hour;
 			end
 			else if(ab == 2'b01)begin
+				//x <= count_1hour;
 				x <= 4'd2 - count_top;
 			end
 			else if(ab == 2'b10)begin
+				//x <= count_10hour;
 				x <= 4'd9 - count_10min;
 			end
 			else begin
+				//x <= count_top;
 				x <= 4'd5 - count_1hour;
 			end
 			
 			ab <= ab+1'b1;
-	
+		//x <= ab?count6:count10;
+		
+			//case(ab)
+			//	2'b00 : x <= count_10min;
+			//	2'b01 : x <= count_1hour;
+			//	2'b10 : x <= count_10hour;
+			//	2'b11 : x <= count_top;
+			//endcase
+			
 			case(x)
 				4'b0000 : disp <= 7'b0111111; //0
 				4'b0001 : disp <= 7'b0000110; //1
@@ -125,20 +141,33 @@ module count_day_reverse(
 	end
 	
 	// 時間用10進カウンタ -> 0~9時間
-	reg[3:0] count_10hour = 4'b0;
+	reg[3:0] count_10hour = 4'd3;
 	reg ten_hour_enable = 1'b0;
+	reg[1:0] flag = 2'd0;
 	always @(posedge clk0) begin
 		if(hour_enable)begin
-			//count_10hour <= (count_10hour==4'd9) ? 1'b0 : (count_10hour+1'b1);
-			//ten_hour_enable <= (count_10hour==4'd9) ? 1'b1 : 1'b0;
-			if(count_top != 4'd2)begin
-				count_10hour <= (count_10hour==4'd9) ? 1'b0 : (count_10hour+1'b1);
-				ten_hour_enable <= (count_10hour==4'd9) ? 1'b1 : 1'b0;
+			//if(flag == 2'd2)begin
+			//	count_10hour <= 4'd3;
+			//	flag <= 2'd0;
+			//end
+		
+			if(count_top == 4'd0)begin
+				count_10hour <= (count_10hour==4'd0) ? 4'd9 : (count_10hour-1'b1);
+				ten_hour_enable <= (count_10hour==4'd0) ? 1'b1 : 1'b0;
 			end
 			else begin
-				count_10hour <= (count_10hour==4'd3) ? 1'b0 : (count_10hour+1'b1);
-				ten_hour_enable <= (count_10hour==4'd3) ? 1'b1 : 1'b0;
+				count_10hour <= (count_10hour==4'd0) ? ((flag>2'd1)? 4'd3 : 4'd9) : (count_10hour-1'b1);
+				
+				if(count_10hour == 4'd1)begin
+					flag <= flag + 1'b1;
+				end
+				if(flag > 2'd1)begin
+					flag <= 2'd0;
+				end
+				
+				ten_hour_enable <= (count_10hour==4'd0) ? 1'b1 : 1'b0;
 			end
+			
 		end
 		else begin
 			ten_hour_enable <= 1'b0;
