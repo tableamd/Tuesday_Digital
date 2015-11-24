@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Create Date:    20:11:40 10/21/2015 
-// Module Name:    seg7_drive 
+// Module Name:    count_day_reverse
 //////////////////////////////////////////////////////////////////////////////////
-module seg7_drive(
+module count_day_reverse(
 	input wire  clk0,
 	output wire [7:0] seg7,
 	output wire [3:0] line,
