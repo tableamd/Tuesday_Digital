@@ -1,8 +1,8 @@
 // seg7_counter10.ucf
 NET "clk0"		LOC = L15;	// CLK
 
-NET "sw(0)"    LOC = P3;
-NET "sw(1)"    LOC = F5;
+NET "sw(0)"    LOC = P3; //ストップウォッチ停止用スイッチ
+NET "sw(1)"    LOC = F5; //ストップウォッチリセット用スイッチ
 
 net "sw2(0)"   LOC = F6;
 net "sw2(1)"   LOC = P4; 
