@@ -50,7 +50,7 @@ while True:
         for k in keypoints:
             if (x < k.pt[0] < x+w) and (y < k.pt[1] < y+h):
                 count += 1
-        cv2.putText(im_with_keypoints,str(count),(x+w-10,y+h-10),fontface,fontscale,(0,0,255)) 
+        cv2.putText(im_with_keypoints,str(count),(x+w-10,y+h-10),fontface,fontscale,(255,255,255)) 
         count = 0
 
     cv2.imshow('camera capture', im_with_keypoints)
